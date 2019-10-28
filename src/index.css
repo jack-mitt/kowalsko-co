@@ -21,6 +21,9 @@ code {
 }
 
 #root{
-  height: 100%;
+  height: auto;
   width: 100%;
+  display : flex;
+  align-items: flex-start;
+  justify-content: center;
 }
