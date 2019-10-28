@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {isMobile} from 'react-device-detect';
+import { BrowserRouter, Route, Switch, withRouter } from 'react-router-dom'
+import { isMobile } from 'react-device-detect';
 import './App.css';
 import MenuIcon from '@material-ui/icons/Menu'
 
@@ -28,10 +29,47 @@ function Container({ style, className, onClick, onMouseEnter, onMouseLeave, id, 
   )
 }
 
-function MobileMenu({ pageNames, selectedPage }) {
+function MenuButton({ pageName, onClick }) {
+
+  const [clicked, setClicked] = useState(false)
+
+  useEffect(() => {
+    if(clicked){
+      setTimeout(() => setClicked(false), 100)
+    }
+  }, [clicked])
+
+  const handleClick = () => {
+    setClicked(true)
+    onClick()
+  }
+
+  return (
+    <Container
+      onClick={handleClick}
+      style={{
+        cursor: 'pointer',
+        height: '60px',
+        background: `rgba(0,0,0,${clicked ? 0.2 : 0})`,
+        transition: 'background 250ms',
+        fontSize: '24px'
+      }}
+    >
+      {pageName.toUpperCase()}
+    </Container>
+  )
+}
+
+function MobileMenu({ pageNames, pages, selectedPage, history }) {
 
   const [active, setActive] = useState(false)
   console.log(active)
+
+  const selectPage = pageName => {
+    history.push(pages[pageName].path)
+    setActive(false)
+  }
+
   return (
     <Container
       style={{
@@ -56,14 +94,7 @@ function MobileMenu({ pageNames, selectedPage }) {
         <Container style={{ height: '20px' }} />
         {
           pageNames.map(pageName =>
-            <Container
-              style={{
-                height: '60px',
-                fontSize: '24px'
-              }}
-            >
-              {pageName.toUpperCase()}
-            </Container>
+            <MenuButton pageName={pageName} onClick={() => selectPage(pageName)} />
           )
         }
         <Container
@@ -85,6 +116,8 @@ function MobileMenu({ pageNames, selectedPage }) {
   )
 }
 
+MobileMenu = withRouter(MobileMenu)
+
 function AppRouter({ pages }) {
   const [selectedPage, setSelectedPage] = useState(null)
 
@@ -100,23 +133,32 @@ function AppRouter({ pages }) {
   console.log(selectedPage)
 
   return (
-    <Container
-      style = {{
-        alignItems : 'flex-start',
-        height: 'auto'
-      }}
-    >
-      {(pages && selectedPage) && React.createElement(pages[selectedPage].component)}
-      <MobileMenu pageNames={pageNames} selectedPage={selectedPage} />
-    </Container>
+    <BrowserRouter>
+      <Container
+        style={{
+          alignItems: 'flex-start',
+          height: 'auto'
+        }}
+      >
+        <Switch>
+          {
+            pageNames.map(name =>
+              <Route exact={name === 'home'} path={pages[name].path} render={() => React.createElement(pages[name].component)} />
+            )
+          }
+        </Switch>
+        <MobileMenu pages={pages} pageNames={pageNames} selectedPage={selectedPage} />
+      </Container>
+    </BrowserRouter>
+
   )
 
 }
 
-function Header ({ value, height }) {
-  return(
+function Header({ value, height }) {
+  return (
     <Container
-      style = {{
+      style={{
         height: height || 40,
         fontSize: isMobile ? '24px' : '34px'
       }}
@@ -130,35 +172,35 @@ function HomePage({ }) {
 
   return (
     <Container
-      style = {{
+      style={{
         flexFlow: 'column',
         height: 'auto',
         justifyContent: 'flex-start'
       }}
     >
       <img
-        style = {{
+        style={{
           width: '100vw',
           height: '100vh',
           objectFit: 'cover'
         }}
-         
-        src="/images/placeholder.png" 
+
+        src="/images/placeholder.png"
       />
 
 
-      <Header value = "About" />
+      <Header value="About" />
       <Container
-        style = {{
+        style={{
           fontFamily: "'Catamaran', sans-serif",
           fontSize: isMobile ? '16px' : '24px',
           height: '50vh',
           width: '60%'
         }}
       >
-      In a time where individuality is appreciated more than ever, it is vitally important to express yourself to the fullest extent. 
-      Kowalski aims to help passionate and unique individuals live their truth. Follow your passion and make those special moments count. 
-      Take full advantage of the opportunities that this world has to offer. Make your passion your lifestyle.
+        In a time where individuality is appreciated more than ever, it is vitally important to express yourself to the fullest extent.
+        Kowalski aims to help passionate and unique individuals live their truth. Follow your passion and make those special moments count.
+        Take full advantage of the opportunities that this world has to offer. Make your passion your lifestyle.
 
       </Container>
     </Container>
@@ -194,19 +236,22 @@ function App() {
   const pages = {
     'home': {
       component: HomePage,
+      path: '/'
     },
     'shop': {
-      component: ShopPage
+      component: ShopPage,
+      path: '/shop'
     },
     'gallery': {
-      component: GalleryPage
+      component: GalleryPage,
+      path: '/gallery'
     }
   }
 
   return (
     <Container
-      style = {{
-        alignItems : 'flex-start',
+      style={{
+        alignItems: 'flex-start',
         height: 'auto'
       }}
     >
